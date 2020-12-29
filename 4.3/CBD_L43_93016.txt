@@ -1,0 +1,62 @@
+a)
+NOTA: PELO QUE PERCEBI, O svn_id É COMO SE FOSSE UM NICKNAME DA PESSOA, POR ISSO VOU CONSIDERAR COMO ATRIBUTO DE UM UTILIZADOR
+Tendo em conta o ficheiro csv, irão existir duas entidades, uma representando o utilizador (com o svn_id, real_name e organization) e outra representando o projeto em si (com o name) e uma relação de "commit", com o num (de commit) e o "papel" do utilizador no projeto específico.
+
+
+b)
+LOAD CSV WITH HEADERS
+FROM "file:///git_selection.csv" AS Row
+MERGE (user:User {svn_id: Row.svn_id})
+SET user.real_name=Row.real_name, user.organization=Row.organization
+MERGE (project:Project {project_name: Row.project_name})
+
+LOAD CSV WITH HEADERS
+FROM "file:///git_selection.csv" AS Row
+MATCH (user:User {svn_id: Row.svn_id}),(project:Project {project_name:Row.project_name})
+CREATE (user)-[:COMMIT {num: Row.num, role_on_project: Row.role_on_project}]->(project)
+
+c)
+
+#1
+MATCH(user: User)
+RETURN user
+
+#2
+MATCH(user: User)
+RETURN user.real_name
+
+#3
+MATCH (user:User)-[r:COMMIT]->(project:Project)
+WITH project, count(r) as countRel
+WHERE countRel >= 1
+RETURN project
+
+#4
+MATCH (User)-[r]->(Project)
+WITH User, count(r) as totProj
+RETURN User, totProj
+
+#5
+MATCH (User)-[r]->(Project)
+WITH User, count(r) as totProj
+RETURN User, totProj
+ORDER BY totProj DESC
+
+#6 CONTRÁRIO DA ALÍNEA 4
+MATCH (User)-[r]->(Project)
+WITH Project, count(r) as num
+RETURN Project, num
+
+#7
+MATCH (User)-[r]->(Project)
+WITH Project, count(r.role_on_project = "Committer") as numRels
+RETURN Project, numRels
+
+#8
+MATCH (atm:User {svn_id:"atm"})-[:COMMIT]->(project:Project)<-[:COMMIT]-(user:User)
+RETURN atm.real_name, user.real_name, project.project_name
+NOTA: pois, eu já suspeitava, tipo eu tinha feito primeiro [r] 2x, e não deu porque estava a usar 2x a mesma variável em 2 relações distintas, e então mudei para COMMIT, o nome da relação; no entanto, deu o mesmo erro na mesma :O, porque continua a ser o nome de uma variável, para especificar mesmo a relação basta meteres uns : atrás e toca a andar :)
+
+#9
+MATCH (atm:User {svn_id:"atm"})-[:COMMIT{role_on_project: "PMC"}]->(project:Project)<-[:COMMIT {role_on_project: "Committer"}]-(user:User)
+RETURN user

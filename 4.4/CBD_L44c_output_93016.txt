@@ -1,0 +1,5 @@
+Criar 2 entidades, Food e Group, e 1 relação BELONGS_TO_GROUP
+
+
+
+

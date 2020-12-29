@@ -1,5 +1,49 @@
 Criar 2 entidades, Food e Group, e 1 relação BELONGS_TO_GROUP
 
+#1 
+MATCH(food:Food) 
+return food
 
+#2
+MATCH(group:Group)
+return group
+
+#3
+MATCH(group:Group)
+return group.group_name
+
+#4
+MATCH(food:Food) 
+return food.food_name
+
+#5
+MATCH(food:Food) 
+return food.scientific_name
+
+#6
+MATCH (Food)-[r]->(Group)
+WITH Food, count(r) as tot
+RETURN Food, tot
+
+#7
+MATCH(food:Food) 
+return count(food)
+
+#8
+MATCH(group:Group) 
+return count(group)
+
+#9
+MATCH(food:Food)
+WHERE food.food_name CONTAINS 'Japanese'
+return count(food)
+
+#10
+MATCH path=shortestPath(
+(startingNode:Food)-[*..2]-(endingNode:Group))
+WHERE startingNode.food_name CONTAINS 'Gr' and endingNode.group_name CONTAINS 'foods'
+UNWIND nodes(path) as n
+WITH startingNode, endingNode, COUNT(DISTINCT n) as dimension
+RETURN startingNode, endingNode, dimension
 
 
